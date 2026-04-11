@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>WS playground</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script>
+
+    const FILMS = [
+        {id: 1, title: 'Oppenheimer', year: 2023, genre: 'Dramat', rating: 5, watched: true},
+        {id: 2, title: 'Dune: Część druga', year: 2024, genre: 'Sci-Fi', rating: 4, watched: false},
+        {id: 3, title: 'Past Lives', year: 2023, genre: 'Romans', rating: 5, watched: true},
+        {id: 4, title: 'Poor Things', year: 2023, genre: 'Komedia', rating: 4, watched: false},
+    ];
+
+    function RatingStars({rating}) {
+        const fstar = "★";
+        const estar = "☆";
+        const prepareStars = rating => {
+            const fs = fstar.repeat(rating)
+            const es = estar.repeat(5 - rating)
+            return fs + es;
+        };
+
+        return React.createElement('span', null, prepareStars(rating));
+    }
+
+    console.log(React.createElement('span', null, '★★★☆☆'));
+
+    function FilmCard({title, year, genre, rating, watched}) {
+        return React.createElement(
+            'div',
+            null,
+            React.createElement("h3", null, `${title} (${year})`),
+            React.createElement("span", null, genre),
+            React.createElement(RatingStars, {rating: rating}),
+            watched ? React.createElement('p', null, "✓ Obejrzany") : null
+        );
+    }
+
+    function App() {
+        return React.createElement(
+            'div',
+            null,
+            '🎬 Biblioteka Filmów',
+            FILMS.map(film => React.createElement(FilmCard, {
+                key: film.id,
+                ...film
+            }))
+        );
+    }
+
+    console.log(React.createElement(FilmCard, { title: 'Test', year: 2024, genre: 'Dramat', rating: 3, watched: false }));
+
+    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
