@@ -2,17 +2,17 @@
 
 import { use } from 'react'
 import { notFound } from 'next/navigation'
-import { useFetch } from '@/hooks/useFetch'
+import { useFilmState } from '@/context/FilmContext'
 import FavoriteButton from './FavoriteButton'
 
 export default function FilmPage({ params }) {
     const { id: rawId } = use(params)
     const id = Number(rawId)
 
-    const { data: films, loading, error } = useFetch('/api/filmy')
+    const { films, loading, error } = useFilmState()
 
     if (loading) return <p>Ładowanie...</p>
-    if (error) return <p>Błąd: {error.message}</p>
+    if (error) return <p>Błąd: {error}</p>
 
     const film = films.find((f) => f.id === id)
     if (!film) notFound()
@@ -22,7 +22,7 @@ export default function FilmPage({ params }) {
             <h1>{film.title}</h1>
             <p>Rok: {film.year}</p>
             <p>Gatunek: {film.genre}</p>
-            <FavoriteButton />
+            <FavoriteButton id={film.id} />
         </div>
     )
 }

@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { Formik, Form, Field } from 'formik'
 import * as Yup from 'yup'
+import { useFilmDispatch } from '@/context/FilmContext'
 
 const validationSchema = Yup.object({
     title: Yup.string().min(2, 'Tytuł musi mieć co najmniej 2 znaki').required('Tytuł jest wymagany'),
@@ -16,6 +17,7 @@ const validationSchema = Yup.object({
 
 export default function DodajFilmPage() {
     const router = useRouter()
+    const dispatch = useFilmDispatch()
 
     return (
         <div>
@@ -24,12 +26,26 @@ export default function DodajFilmPage() {
                 initialValues={{ title: '', year: '', genre: '' }}
                 validationSchema={validationSchema}
                 onSubmit={async (values) => {
-                    await fetch('/api/filmy', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ ...values, year: Number(values.year) }),
-                    })
-                    router.push('/filmy')
+                    try {
+                        const res = await fetch('/api/filmy', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ ...values, year: Number(values.year) }),
+                        })
+                        if (!res.ok) throw new Error('Nie udało się dodać filmu')
+                        const newFilm = await res.json()
+                        dispatch({ type: 'ADD_FILM', payload: newFilm })
+                        dispatch({
+                            type: 'ADD_NOTIFICATION',
+                            payload: { message: 'Film dodany', type: 'success' },
+                        })
+                        router.push('/filmy')
+                    } catch (err) {
+                        dispatch({
+                            type: 'ADD_NOTIFICATION',
+                            payload: { message: err.message, type: 'error' },
+                        })
+                    }
                 }}
             >
                 {({ errors, touched }) => (

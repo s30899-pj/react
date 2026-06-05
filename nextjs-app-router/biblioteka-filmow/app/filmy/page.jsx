@@ -1,44 +1,49 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { useFetch } from '@/hooks/useFetch'
+import { useFilmState, useFilmDispatch } from '@/context/FilmContext'
 
 export default function FilmyPage() {
-    const [refreshKey, setRefreshKey] = useState(0)
-    const [query, setQuery] = useState('')
-    const searchRef = useRef(null)
+    const { films, loading, error, query, favorites } = useFilmState()
+    const dispatch = useFilmDispatch()
 
-    const { data: films, loading, error } = useFetch('/api/filmy?v=' + refreshKey)
+    const filtered = films.filter((f) =>
+        f.title.toLowerCase().includes(query.toLowerCase())
+    )
 
-    useEffect(() => {
-        searchRef.current?.focus()
-    }, [])
-
-    const filtered = films
-        ? films.filter((f) => f.title.toLowerCase().includes(query.toLowerCase()))
-        : []
+    const handleFavorite = (film) => {
+        const isFavorite = favorites.includes(film.id)
+        dispatch({ type: 'TOGGLE_FAVORITE', payload: film.id })
+        dispatch({
+            type: 'ADD_NOTIFICATION',
+            payload: {
+                message: isFavorite ? 'Usunieto z ulubionych' : 'Dodano do ulubionych',
+                type: 'info',
+            },
+        })
+    }
 
     return (
         <div>
             <h1>Lista filmów</h1>
-            <Link href="/filmy/dodaj">Dodaj film</Link>
-            <button onClick={() => setRefreshKey((prev) => prev + 1)}>Odśwież</button>
+            <Link href="/filmy/dodaj">+ Dodaj film</Link>
             <div>
                 <input
-                    ref={searchRef}
                     type="text"
                     placeholder="Szukaj po tytule..."
                     value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    onChange={(e) => dispatch({ type: 'SET_QUERY', payload: e.target.value })}
                 />
             </div>
             {loading && <p>Ładowanie...</p>}
-            {error && <p>Błąd: {error.message}</p>}
+            {error && <p>Błąd: {error}</p>}
             {!loading && !error && (
                 <ul>
                     {filtered.map((film) => (
                         <li key={film.id}>
+                            <button onClick={() => handleFavorite(film)}>
+                                {favorites.includes(film.id) ? '★' : '☆'}
+                            </button>
                             <Link href={`/filmy/${film.id}`}>{film.title} ({film.year})</Link>
                         </li>
                     ))}
